@@ -1,5 +1,10 @@
 package com.bearminds.purchases
 
+import androidx.compose.runtime.Composable
+
+val purchasesApiKey = "purchasesApiKey"
+val entitlementsKey = "entitlementsKey"
+
 /**
  * Helper interface for managing in-app purchases and subscriptions
  * Uses abstract purchase types that are resolved to platform-specific implementations
@@ -59,4 +64,7 @@ interface PurchaseHelper {
      * @return True if the user has an active entitlement
      */
     suspend fun hasActiveEntitlement(entitlementIdentifier: String): Boolean
+
+    @Composable
+    fun Paywall(dismissRequest: () -> Unit)
 }

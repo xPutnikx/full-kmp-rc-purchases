@@ -7,6 +7,8 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.androidLint)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
 }
 
 kotlin {
@@ -65,11 +67,15 @@ kotlin {
             dependencies {
                 implementation(libs.kotlin.stdlib)
 
+                // Compose
+                implementation(compose.runtime)
+
                 // Koin
                 implementation(libs.koin.core)
 
                 // RevenueCat
                 implementation(libs.revenuecat.core)
+                implementation(libs.revenuecat.ui)
                 implementation(libs.revenuecat.either)
                 implementation(libs.revenuecat.result)
             }
@@ -105,5 +111,6 @@ afterEvaluate {
         exclude(group = "com.revenuecat.purchases", module = "purchases-kmp-core")
         exclude(group = "com.revenuecat.purchases", module = "purchases-kmp-either")
         exclude(group = "com.revenuecat.purchases", module = "purchases-kmp-result")
+        exclude(group = "com.revenuecat.purchases", module = "purchases-kmp-ui")
     }
 }

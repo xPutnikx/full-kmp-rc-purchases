@@ -1,5 +1,7 @@
 package com.bearminds.purchases
 
+import androidx.compose.runtime.Composable
+
 /**
  * No-op implementation of PurchaseHelper for JVM platform
  * Purchases are not supported on desktop JVM
@@ -46,6 +48,11 @@ class JVMPurchaseHelper : PurchaseHelper {
     override suspend fun hasActiveEntitlement(entitlementIdentifier: String): Boolean {
         println("PurchaseHelper: JVM platform - hasActiveEntitlement not supported")
         return false
+    }
+
+    @Composable
+    override fun Paywall(dismissRequest: () -> Unit) {
+        println("PurchaseHelper: JVM platform - Paywall not supported")
     }
 }
 

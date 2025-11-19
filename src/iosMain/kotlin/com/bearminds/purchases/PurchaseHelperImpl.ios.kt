@@ -1,9 +1,15 @@
 package com.bearminds.purchases
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import com.revenuecat.purchases.kmp.LogLevel
 import com.revenuecat.purchases.kmp.Purchases
 import com.revenuecat.purchases.kmp.PurchasesConfiguration
 import com.revenuecat.purchases.kmp.models.Transaction
+import com.revenuecat.purchases.kmp.ui.revenuecatui.PaywallListener
+import com.revenuecat.purchases.kmp.ui.revenuecatui.PaywallOptions
+import org.koin.mp.KoinPlatform.getKoin
 
 class IOSPurchaseHelper : PurchaseHelper {
 
@@ -148,6 +154,32 @@ class IOSPurchaseHelper : PurchaseHelper {
         )
 
         return hasEntitlement
+    }
+
+    @Composable
+    override fun Paywall(dismissRequest: () -> Unit) {
+        val purchaseStateManager: PurchaseStateManager = getKoin().get()
+        val paywallListener: PaywallListener = getKoin().get()
+
+        val options = remember(paywallListener) {
+            PaywallOptions(dismissRequest = dismissRequest) {
+                shouldDisplayDismissButton = true
+                listener = paywallListener
+            }
+        }
+
+        // Observe events to handle dismiss on success/restore
+        LaunchedEffect(Unit) {
+            purchaseStateManager.purchaseEvents.collect { event ->
+                when (event) {
+                    PurchaseEvent.PurchaseSuccess,
+                    PurchaseEvent.RestoreSuccess -> dismissRequest()
+                    else -> { /* Handle in UI layer */ }
+                }
+            }
+        }
+
+        com.revenuecat.purchases.kmp.ui.revenuecatui.Paywall(options)
     }
 }
 
