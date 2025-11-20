@@ -26,7 +26,7 @@ This module provides a **platform-agnostic abstraction layer** that:
 
 ## Why It's Good
 
-### ✅ Compilation Safety
+### Compilation Safety
 
 Your project compiles successfully for **all** target platforms, not just Android and iOS. The module automatically excludes RevenueCat from unsupported platforms using Gradle configuration:
 
@@ -47,216 +47,127 @@ afterEvaluate {
 }
 ```
 
-### ✅ Clean Abstraction
+### Clean Abstraction
 
 Common code never imports RevenueCat types directly. Instead, it uses platform-agnostic interfaces.
 
-### ✅ Platform-Specific Implementations
+### Platform-Specific Implementations
 
 - **Android/iOS**: Full RevenueCat integration with all features
 - **JVM/JS/WASM**: No-op implementations that gracefully handle unsupported platforms
 - **Other Apple platforms**: Stub implementations for compilation
 
-### ✅ Dependency Injection Ready
+### Dependency Injection Ready
 
-The module integrates seamlessly with Koin (or any DI framework) via `expect/actual` pattern:
+The module integrates seamlessly with Koin via `expect/actual` pattern:
 
 ```kotlin
 // commonMain
 expect val platformPurchaseModule: Module
 
-// androidMain
+// androidMain/iosMain/jvmMain
 actual val platformPurchaseModule: Module = module {
-    single<PurchaseHelper> { AndroidPurchaseHelper() }
-}
-
-// iosMain
-actual val platformPurchaseModule: Module = module {
-    single<PurchaseHelper> { IOSPurchaseHelper() }
-}
-
-// jvmMain
-actual val platformPurchaseModule: Module = module {
-    single<PurchaseHelper> { JVMPurchaseHelper() }
+    single<PurchaseHelper> { PlatformPurchaseHelper() }
+    single { PurchaseStateManager(get(), CoroutineScope(...)) }
+    single<PaywallListener> { PaywallListenerImpl(get()) }
 }
 ```
 
 ## Why You Should Use It
 
-### 🎯 Multi-Platform Projects
+### Multi-Platform Projects
 
 If your Kotlin Multiplatform project targets more than just Android and iOS, this module is **essential**. Without it, you'll face compilation errors on unsupported platforms.
 
-### 🎯 Clean Architecture
+### Clean Architecture
 
 The abstraction layer keeps your business logic completely platform-independent. Your ViewModels, repositories, and use cases can work with purchases without knowing about RevenueCat.
 
-### 🎯 Future-Proof
+### Future-Proof
 
 If RevenueCat adds support for new platforms in the future, you only need to update the platform-specific implementation in this module. Your common code remains unchanged.
 
-### 🎯 Testing
+### Testing
 
 No-op implementations on unsupported platforms make it easy to test your purchase logic without requiring actual platform-specific purchase infrastructure.
 
-## How to Use It
+## Quick Start
 
-### 1. Add the Module as a Dependency
-
-In your main app module's `build.gradle.kts`:
+### 1. Add Dependency
 
 ```kotlin
-kotlin {
-    sourceSets {
-        commonMain.dependencies {
-            implementation(project(":purchases"))
-        }
-    }
+commonMain.dependencies {
+    implementation(project(":purchases"))
 }
 ```
 
-### 2. Include the Platform Module in Your DI Setup
-
-In your Koin module (or other DI framework):
+### 2. Include in DI
 
 ```kotlin
-val purchaseModule = module {
-    includes(platformPurchaseModule)  // This provides the platform-specific implementation
+val appModule = module {
+    includes(platformPurchaseModule)
 }
 ```
 
-### 3. Use PurchaseHelper in Your Code
-
-Inject `PurchaseHelper` wherever you need purchase functionality:
+### 3. Use in Code
 
 ```kotlin
-class SubscriptionViewModel(
+class YourViewModel(
+    private val purchaseStateManager: PurchaseStateManager,
     private val purchaseHelper: PurchaseHelper
-) : ViewModel() {
-    
-    fun loadOfferings() {
+) {
+    val isPro = purchaseStateManager.isPro
+
+    init {
         viewModelScope.launch {
-            purchaseHelper.getOfferings(
-                onSuccess = { offerings ->
-                    // Handle offerings
-                    val currentOffering = offerings.current
+            purchaseStateManager.purchaseEvents.collect { event ->
+                when (event) {
+                    PurchaseEvent.PurchaseSuccess -> { /* Handle success */ }
+                    is PurchaseEvent.Error -> { /* Handle error */ }
                     // ...
-                },
-                onError = { error ->
-                    // Handle error
                 }
-            )
+            }
         }
     }
-    
-    fun purchasePackage(packageToPurchase: PurchasePackage) {
-        viewModelScope.launch {
-            purchaseHelper.purchase(
-                packageToPurchase = packageToPurchase,
-                onSuccess = { transaction, customerInfo ->
-                    // Handle successful purchase
-                },
-                onError = { error, userCancelled ->
-                    // Handle error or cancellation
-                }
-            )
-        }
-    }
-    
-    suspend fun checkPremiumAccess(): Boolean {
-        return purchaseHelper.hasActiveEntitlement("premium")
-    }
 }
 ```
 
-### 4. Initialize on App Startup
+## API Overview
 
-Initialize the purchase helper with your RevenueCat API key (Android/iOS only):
+### Core Components
+
+| Component | Description |
+|-----------|-------------|
+| `PurchaseHelper` | Main interface for purchase operations (initialize, getOfferings, purchase, restore) |
+| `PurchaseStateManager` | Manages `isPro` state and emits `PurchaseEvent` flow |
+| `PaywallListener` | Handles RevenueCat paywall callbacks |
+
+### Purchase Events
 
 ```kotlin
-// In your app initialization code
-val purchaseHelper: PurchaseHelper = get() // from DI
-
-lifecycleScope.launch {
-    // Get platform-specific API key
-    val apiKey = when {
-        Platform.isAndroid() -> "your_android_api_key"
-        Platform.isIOS() -> "your_ios_api_key"
-        else -> "" // Not needed for unsupported platforms
-    }
-    
-    if (apiKey.isNotEmpty()) {
-        purchaseHelper.initialize(apiKey)
-    }
+sealed interface PurchaseEvent {
+    data object PurchaseSuccess
+    data object RestoreSuccess
+    data object PurchaseCancelled
+    data class Error(val error: PurchaseError)
+    data class RestoreFailed(val error: PurchaseError)
 }
 ```
 
-## API Reference
+### Abstract Types
 
-### PurchaseHelper Interface
-
-The main interface for all purchase operations:
-
-```kotlin
-interface PurchaseHelper {
-    suspend fun initialize(apiKey: String)
-    suspend fun getOfferings(
-        onSuccess: (PurchaseOfferings) -> Unit,
-        onError: (PurchaseError) -> Unit
-    )
-    suspend fun purchase(
-        packageToPurchase: PurchasePackage,
-        onSuccess: (PurchaseStoreTransaction, PurchaseCustomerInfo) -> Unit,
-        onError: (PurchaseError, Boolean) -> Unit
-    )
-    suspend fun restorePurchases(
-        onSuccess: (PurchaseCustomerInfo) -> Unit,
-        onError: (PurchaseError) -> Unit
-    )
-    suspend fun getCustomerInfo(
-        onSuccess: (PurchaseCustomerInfo) -> Unit,
-        onError: (PurchaseError) -> Unit
-    )
-    suspend fun hasActiveEntitlement(entitlementIdentifier: String): Boolean
-}
-```
-
-### Type System
-
-All RevenueCat types are abstracted into platform-independent interfaces:
-
-- `PurchaseCustomerInfo` - Customer subscription and purchase information
-- `PurchaseEntitlementInfo` - Entitlement status and details
-- `PurchaseOfferings` - Available subscription offerings
-- `PurchaseOffering` - A specific offering with packages
-- `PurchasePackage` - A purchasable package (monthly, annual, etc.)
-- `PurchaseError` - Error information
-- `PurchaseStoreTransaction` - Transaction details
+`PurchaseCustomerInfo`, `PurchaseEntitlementInfo`, `PurchaseOfferings`, `PurchaseOffering`, `PurchasePackage`, `PurchaseError`, `PurchaseStoreTransaction`
 
 ## Platform Behavior
 
-### Android & iOS
-
-Full RevenueCat functionality:
-- ✅ Real purchases and subscriptions
-- ✅ Restore purchases
-- ✅ Customer info retrieval
-- ✅ Entitlement checking
-- ✅ Error handling
-
-### JVM, JS, WASM, and Other Platforms
-
-No-op implementations:
-- ⚠️ All methods complete without errors
-- ⚠️ `hasActiveEntitlement()` always returns `false`
-- ⚠️ Purchase operations call error callbacks with stub errors
-- ⚠️ No actual purchase functionality
-
-This allows your app to compile and run, but purchase features will be disabled on these platforms. You can handle this in your UI by checking the platform or the result of purchase operations.
+| Platform | Behavior |
+|----------|----------|
+| **Android/iOS** | Full RevenueCat functionality |
+| **JVM/JS/WASM** | No-op implementations (compiles but returns errors/false) |
 
 ## RevenueCat Setup
 
-This module requires RevenueCat to be properly configured for Android and iOS. 
+This module requires RevenueCat to be properly configured for Android and iOS.
 Refer to the [official RevenueCat KMP documentation](https://www.revenuecat.com/docs/getting-started/installation/kotlin-multiplatform) for:
 
 1. **Account Setup**: Create a RevenueCat account and project
@@ -269,60 +180,13 @@ The module handles the Kotlin Multiplatform integration, but you still need to c
 ## Architecture
 
 ```
-purchases/
-├── src/
-│   ├── commonMain/
-│   │   └── kotlin/com/bearminds/purchases/
-│   │       ├── PurchaseHelper.kt          # Main interface
-│   │       ├── PurchaseTypes.kt           # Abstract type interfaces
-│   │       └── purchaseModule.kt          # expect val for DI
-│   ├── androidMain/
-│   │   └── kotlin/com/bearminds/purchases/
-│   │       ├── PurchaseHelperImpl.android.kt  # Android RevenueCat implementation
-│   │       ├── PurchaseTypes.android.kt       # Android type wrappers
-│   │       └── purchaseModule.android.kt      # Android DI module
-│   ├── iosMain/
-│   │   └── kotlin/com/bearminds/purchases/
-│   │       ├── PurchaseHelperImpl.ios.kt      # iOS RevenueCat implementation
-│   │       ├── PurchaseTypes.ios.kt            # iOS type wrappers
-│   │       └── purchaseModule.ios.kt           # iOS DI module
-│   └── jvmMain/
-│       └── kotlin/com/bearminds/purchases/
-│           ├── PurchaseHelperImpl.jvm.kt       # JVM no-op implementation
-│           ├── PurchaseTypes.jvm.kt            # JVM stub types
-│           └── purchaseModule.jvm.kt          # JVM DI module
-└── build.gradle.kts                            # Gradle config with RevenueCat exclusions
+purchases/src/
+├── commonMain/     # PurchaseHelper interface, PurchaseTypes, PurchaseStateManager
+├── androidMain/    # Android RevenueCat implementation
+├── iosMain/        # iOS RevenueCat implementation
+└── jvmMain/        # JVM no-op implementation
 ```
-
-## Best Practices
-
-1. **Always check platform support** before showing purchase UI:
-   ```kotlin
-   if (Platform.isAndroid() || Platform.isIOS()) {
-       // Show purchase options
-   } else {
-       // Show alternative (e.g., "Premium features not available on desktop")
-   }
-   ```
-
-2. **Handle errors gracefully** - Unsupported platforms will return errors, so always handle the error callbacks.
-
-3. **Use dependency injection** - Always inject `PurchaseHelper` rather than instantiating it directly.
-
-4. **Initialize early** - Call `initialize()` as early as possible in your app lifecycle.
-
-5. **Check entitlements** - Use `hasActiveEntitlement()` to gate premium features rather than assuming purchase success.
-
-## Contributing
-
-When adding support for new platforms:
-
-1. Create a new source set (e.g., `jsMain`, `wasmJsMain`)
-2. Implement `PurchaseHelper` with appropriate behavior (no-op or actual implementation)
-3. Implement stub types in `PurchaseTypes.{platform}.kt`
-4. Add the platform to the exclusion list in `build.gradle.kts` if RevenueCat doesn't support it
-5. Create the platform-specific DI module
 
 ## License
 
-This module is **free to use, copy, or fork** by anyone. It's a helper library designed to work with RevenueCat's Kotlin Multiplatform SDK and provides no additional charges or fees beyond what RevenueCat itself may charge for their service. This module is independent of RevenueCat's business model and simply provides an abstraction layer to make RevenueCat easier to use in multi-platform Kotlin projects.
+This module is **free to use, copy, or fork** by anyone. It's a helper library designed to work with RevenueCat's Kotlin Multiplatform SDK and provides no additional charges or fees beyond what RevenueCat itself may charge for their service.
