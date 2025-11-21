@@ -69,6 +69,7 @@ kotlin {
 
                 // Compose
                 implementation(compose.runtime)
+                implementation(compose.ui)
 
                 // Koin
                 implementation(libs.koin.core)

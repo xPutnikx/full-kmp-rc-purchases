@@ -3,6 +3,7 @@ package com.bearminds.purchases
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import com.revenuecat.purchases.kmp.LogLevel
 import com.revenuecat.purchases.kmp.Purchases
 import com.revenuecat.purchases.kmp.PurchasesConfiguration
@@ -182,6 +183,14 @@ class AndroidPurchaseHelper : PurchaseHelper {
         }
 
         Paywall(options)
+    }
+
+    @Composable
+    override fun CustomerCenter(modifier: Modifier, dismissRequest: () -> Unit) {
+        com.revenuecat.purchases.kmp.ui.revenuecatui.CustomerCenter(
+            modifier = modifier,
+            onDismiss = dismissRequest
+        )
     }
 }
 

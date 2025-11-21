@@ -1,6 +1,7 @@
 package com.bearminds.purchases
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 
 /**
  * No-op implementation of PurchaseHelper for JVM platform
@@ -53,6 +54,11 @@ class JVMPurchaseHelper : PurchaseHelper {
     @Composable
     override fun Paywall(dismissRequest: () -> Unit) {
         println("PurchaseHelper: JVM platform - Paywall not supported")
+    }
+
+    @Composable
+    override fun CustomerCenter(modifier: Modifier, dismissRequest: () -> Unit) {
+        println("PurchaseHelper: JVM platform - CustomerCenter not supported")
     }
 }
 

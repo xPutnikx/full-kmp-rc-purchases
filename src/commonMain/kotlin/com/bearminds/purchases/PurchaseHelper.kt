@@ -1,6 +1,7 @@
 package com.bearminds.purchases
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 
 val purchasesApiKey = "purchasesApiKey"
 val entitlementsKey = "entitlementsKey"
@@ -67,4 +68,7 @@ interface PurchaseHelper {
 
     @Composable
     fun Paywall(dismissRequest: () -> Unit)
+
+    @Composable
+    fun CustomerCenter(modifier: Modifier, dismissRequest: () -> Unit)
 }
