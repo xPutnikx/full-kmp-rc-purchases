@@ -114,4 +114,11 @@ afterEvaluate {
         exclude(group = "com.revenuecat.purchases", module = "purchases-kmp-result")
         exclude(group = "com.revenuecat.purchases", module = "purchases-kmp-ui")
     }
+
+    configurations.matching {
+        it.name.contains("tvos", ignoreCase = true) ||
+        it.name.contains("watchos", ignoreCase = true)
+    }.configureEach {
+        exclude(group = "org.jetbrains.compose.ui", module = "ui")
+    }
 }
