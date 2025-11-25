@@ -4,20 +4,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 /**
- * No-op implementation of PurchaseHelper for JVM platform
- * Purchases are not supported on desktop JVM
+ * JVM implementation of PurchaseHelper that grants pro access by default.
+ * Purchases are not supported on desktop JVM, but we auto-grant pro for development.
  */
 class JVMPurchaseHelper : PurchaseHelper {
 
+    private val proCustomerInfo = PurchaseCustomerInfoWrapper()
+
     override suspend fun initialize(apiKey: String) {
-        println("PurchaseHelper: JVM platform - purchases not supported")
+        println("PurchaseHelper: JVM platform - initialized with pro access granted")
     }
 
     override suspend fun getOfferings(
         onSuccess: (PurchaseOfferings) -> Unit,
         onError: (PurchaseError) -> Unit
     ) {
-        println("PurchaseHelper: JVM platform - getOfferings not supported")
+        println("PurchaseHelper: JVM platform - getOfferings not supported (pro already granted)")
         onError(StubPurchaseError())
     }
 
@@ -26,29 +28,30 @@ class JVMPurchaseHelper : PurchaseHelper {
         onSuccess: (PurchaseStoreTransaction, PurchaseCustomerInfo) -> Unit,
         onError: (PurchaseError, Boolean) -> Unit
     ) {
-        println("PurchaseHelper: JVM platform - purchase not supported")
-        onError(StubPurchaseError(), false)
+        println("PurchaseHelper: JVM platform - purchase not needed (pro already granted)")
+        // Auto-complete purchase since pro is granted
+        onSuccess(StubPurchaseStoreTransaction(), proCustomerInfo)
     }
 
     override suspend fun restorePurchases(
         onSuccess: (PurchaseCustomerInfo) -> Unit,
         onError: (PurchaseError) -> Unit
     ) {
-        println("PurchaseHelper: JVM platform - restorePurchases not supported")
-        onError(StubPurchaseError())
+        println("PurchaseHelper: JVM platform - restore returning pro access")
+        onSuccess(proCustomerInfo)
     }
 
     override suspend fun getCustomerInfo(
         onSuccess: (PurchaseCustomerInfo) -> Unit,
         onError: (PurchaseError) -> Unit
     ) {
-        println("PurchaseHelper: JVM platform - getCustomerInfo not supported")
-        onError(StubPurchaseError())
+        println("PurchaseHelper: JVM platform - returning pro customer info")
+        onSuccess(proCustomerInfo)
     }
 
     override suspend fun hasActiveEntitlement(entitlementIdentifier: String): Boolean {
-        println("PurchaseHelper: JVM platform - hasActiveEntitlement not supported")
-        return false
+        println("PurchaseHelper: JVM platform - hasActiveEntitlement returning true (pro granted)")
+        return true
     }
 
     override fun setPreferredLocale(locale: String) {
