@@ -51,6 +51,10 @@ class JVMPurchaseHelper : PurchaseHelper {
         return false
     }
 
+    override fun setPreferredLocale(locale: String) {
+        println("PurchaseHelper: JVM platform - setPreferredLocale not supported")
+    }
+
     @Composable
     override fun Paywall(dismissRequest: () -> Unit) {
         println("PurchaseHelper: JVM platform - Paywall not supported")

@@ -9,6 +9,10 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 actual val platformPurchaseModule: Module = module {
+    single {
+        CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    }
+
     single<PurchaseHelper> {
         IOSPurchaseHelper()
     }
@@ -16,7 +20,7 @@ actual val platformPurchaseModule: Module = module {
     single {
         PurchaseStateManager(
             purchaseHelper = get(),
-            scope = CoroutineScope(SupervisorJob() + Dispatchers.Main),
+            scope = get(),
             entitlementId = get(named(entitlementsKey))
         )
     }

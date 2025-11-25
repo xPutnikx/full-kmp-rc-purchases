@@ -89,7 +89,10 @@ kotlin {
         }
 
         androidMain {
-            dependencies {}
+            dependencies {
+                implementation(libs.revenuecat.android)
+                implementation(libs.revenuecat.android.ui)
+            }
         }
 
         iosMain {

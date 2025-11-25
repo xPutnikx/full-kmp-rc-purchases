@@ -4,13 +4,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.revenuecat.purchases.customercenter.CustomerCenterListener
 import com.revenuecat.purchases.kmp.LogLevel
 import com.revenuecat.purchases.kmp.Purchases
 import com.revenuecat.purchases.kmp.PurchasesConfiguration
+import com.revenuecat.purchases.Purchases as NativePurchases
 import com.revenuecat.purchases.kmp.models.Transaction
 import com.revenuecat.purchases.kmp.ui.revenuecatui.Paywall
 import com.revenuecat.purchases.kmp.ui.revenuecatui.PaywallListener
 import com.revenuecat.purchases.kmp.ui.revenuecatui.PaywallOptions
+import com.revenuecat.purchases.ui.revenuecatui.customercenter.CustomerCenterOptions
 import org.koin.mp.KoinPlatform.getKoin
 
 class AndroidPurchaseHelper : PurchaseHelper {
@@ -157,6 +160,15 @@ class AndroidPurchaseHelper : PurchaseHelper {
         return hasEntitlement
     }
 
+    override fun setPreferredLocale(locale: String) {
+        if (!isInitialized) {
+            println("PurchaseHelper: Not initialized, cannot set preferred locale")
+            return
+        }
+        NativePurchases.sharedInstance.overridePreferredUILocale(locale)
+        println("PurchaseHelper: Set preferred locale to $locale")
+    }
+
     @Composable
     override fun Paywall(dismissRequest: () -> Unit) {
         val purchaseStateManager: PurchaseStateManager = getKoin().get()
@@ -187,9 +199,22 @@ class AndroidPurchaseHelper : PurchaseHelper {
 
     @Composable
     override fun CustomerCenter(modifier: Modifier, dismissRequest: () -> Unit) {
-        com.revenuecat.purchases.kmp.ui.revenuecatui.CustomerCenter(
+        val purchaseStateManager: PurchaseStateManager = getKoin().get()
+        val customerCenterListener: CustomerCenterListener = getKoin().get()
+
+        LaunchedEffect(Unit) {
+            purchaseStateManager.emitEvent(PurchaseEvent.CustomerCenter.Opened)
+        }
+
+        com.revenuecat.purchases.ui.revenuecatui.customercenter.CustomerCenter(
             modifier = modifier,
-            onDismiss = dismissRequest
+            options = CustomerCenterOptions.Builder()
+                .setListener(customerCenterListener)
+                .build(),
+            onDismiss = {
+                purchaseStateManager.emitEvent(PurchaseEvent.CustomerCenter.Dismissed)
+                dismissRequest()
+            }
         )
     }
 }

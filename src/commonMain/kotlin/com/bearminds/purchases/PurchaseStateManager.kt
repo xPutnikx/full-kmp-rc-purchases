@@ -15,6 +15,29 @@ sealed interface PurchaseEvent {
     data object PurchaseCancelled : PurchaseEvent
     data class Error(val error: PurchaseError) : PurchaseEvent
     data class RestoreFailed(val error: PurchaseError) : PurchaseEvent
+
+    // Customer Center events
+    sealed interface CustomerCenter : PurchaseEvent {
+        data object Opened : CustomerCenter
+        data object Dismissed : CustomerCenter
+        data object RestoreStarted : CustomerCenter
+        data object RestoreCompleted : CustomerCenter
+        data class RestoreFailed(val errorMessage: String) : CustomerCenter
+        data object ManageSubscriptionsShown : CustomerCenter
+        data class FeedbackSurveyCompleted(val optionId: String) : CustomerCenter
+        data class ManagementOptionSelected(val option: ManagementOption) : CustomerCenter
+    }
+}
+
+sealed interface ManagementOption {
+    object Unknown: ManagementOption
+    object MissingPurchase: ManagementOption
+    object Cancel: ManagementOption
+    data class CustomUrl(val url: String): ManagementOption
+    data class CustomAction(
+        val actionIdentifier: String,
+        val purchaseIdentifier: String?,
+    ): ManagementOption
 }
 
 class PurchaseStateManager(

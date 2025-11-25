@@ -157,6 +157,18 @@ class IOSPurchaseHelper : PurchaseHelper {
         return hasEntitlement
     }
 
+    override fun setPreferredLocale(locale: String) {
+        if (!isInitialized) {
+            println("PurchaseHelper: Not initialized, cannot set preferred locale")
+            return
+        }
+        // Note: The RevenueCat KMP SDK doesn't expose overridePreferredUILocale for iOS yet.
+        // The native iOS SDK supports this feature, but it's not wrapped in the KMP SDK.
+        // When the KMP SDK adds support, this can be updated.
+        // For now, the paywall will use the device's system locale on iOS.
+        println("PurchaseHelper: setPreferredLocale($locale) - Not yet supported in KMP SDK for iOS")
+    }
+
     @Composable
     override fun Paywall(dismissRequest: () -> Unit) {
         val purchaseStateManager: PurchaseStateManager = getKoin().get()
@@ -187,9 +199,19 @@ class IOSPurchaseHelper : PurchaseHelper {
 
     @Composable
     override fun CustomerCenter(modifier: Modifier, dismissRequest: () -> Unit) {
+        val purchaseStateManager: PurchaseStateManager = getKoin().get()
+
+        // Log CustomerCenter open event
+        LaunchedEffect(Unit) {
+            purchaseStateManager.emitEvent(PurchaseEvent.CustomerCenter.Opened)
+        }
+
         com.revenuecat.purchases.kmp.ui.revenuecatui.CustomerCenter(
             modifier = modifier,
-            onDismiss = dismissRequest
+            onDismiss = {
+                purchaseStateManager.emitEvent(PurchaseEvent.CustomerCenter.Dismissed)
+                dismissRequest()
+            }
         )
     }
 }

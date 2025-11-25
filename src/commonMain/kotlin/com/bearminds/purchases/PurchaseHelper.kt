@@ -66,6 +66,15 @@ interface PurchaseHelper {
      */
     suspend fun hasActiveEntitlement(entitlementIdentifier: String): Boolean
 
+    /**
+     * Set the preferred locale for paywalls and customer center UI
+     * @param locale The locale code (e.g., "es-ES", "de-DE")
+     *
+     * This doesn't work on iOS platform just yet, because KMP doesn't support it.
+     * On Android I integrate android lib directly, but on iOS I don't want to bring in SPM package
+     */
+    fun setPreferredLocale(locale: String)
+
     @Composable
     fun Paywall(dismissRequest: () -> Unit)
 
