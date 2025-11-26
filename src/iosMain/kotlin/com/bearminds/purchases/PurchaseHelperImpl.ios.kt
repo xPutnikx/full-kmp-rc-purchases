@@ -23,7 +23,7 @@ class IOSPurchaseHelper : PurchaseHelper {
         }
 
         try {
-            Purchases.logLevel = LogLevel.DEBUG
+            Purchases.logLevel = LogLevel.ERROR
             Purchases.configure(
                 configuration = PurchasesConfiguration(
                     apiKey = apiKey
@@ -170,7 +170,7 @@ class IOSPurchaseHelper : PurchaseHelper {
     }
 
     @Composable
-    override fun Paywall(dismissRequest: () -> Unit) {
+    override fun Paywall(source: String, dismissRequest: () -> Unit) {
         val purchaseStateManager: PurchaseStateManager = getKoin().get()
         val paywallListener: PaywallListener = getKoin().get()
 
@@ -181,11 +181,12 @@ class IOSPurchaseHelper : PurchaseHelper {
             }
         }
 
-        // Observe events to handle dismiss on success/restore
+        // Track paywall displayed and observe events to handle dismiss on success/restore
         LaunchedEffect(Unit) {
+            purchaseStateManager.emitEvent(PurchaseEvent.PaywallDisplayed(source))
             purchaseStateManager.purchaseEvents.collect { event ->
                 when (event) {
-                    PurchaseEvent.PurchaseSuccess,
+                    is PurchaseEvent.PurchaseSuccess,
                     PurchaseEvent.RestoreSuccess -> dismissRequest()
 
                     else -> { /* Handle in UI layer */

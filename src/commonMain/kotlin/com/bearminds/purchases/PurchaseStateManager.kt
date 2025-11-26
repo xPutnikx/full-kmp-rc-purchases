@@ -10,11 +10,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 sealed interface PurchaseEvent {
-    data object PurchaseSuccess : PurchaseEvent
+    data class PurchaseStarted(val packageIdentifier: String) : PurchaseEvent
+    data class PurchaseSuccess(val productIdentifier: String) : PurchaseEvent
+    data object RestoreStarted : PurchaseEvent
     data object RestoreSuccess : PurchaseEvent
     data object PurchaseCancelled : PurchaseEvent
     data class Error(val error: PurchaseError) : PurchaseEvent
     data class RestoreFailed(val error: PurchaseError) : PurchaseEvent
+    data class PaywallDisplayed(val source: String) : PurchaseEvent
 
     // Customer Center events
     sealed interface CustomerCenter : PurchaseEvent {

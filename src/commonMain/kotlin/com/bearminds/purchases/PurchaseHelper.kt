@@ -76,7 +76,7 @@ interface PurchaseHelper {
     fun setPreferredLocale(locale: String)
 
     @Composable
-    fun Paywall(dismissRequest: () -> Unit)
+    fun Paywall(source: String, dismissRequest: () -> Unit)
 
     @Composable
     fun CustomerCenter(modifier: Modifier, dismissRequest: () -> Unit)

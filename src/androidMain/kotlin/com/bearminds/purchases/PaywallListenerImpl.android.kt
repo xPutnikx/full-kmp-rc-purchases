@@ -20,7 +20,8 @@ class PaywallListenerImpl(
     ) {
         val wrappedInfo = AndroidPurchaseCustomerInfo(customerInfo)
         purchaseStateManager.updateFromCustomerInfo(wrappedInfo)
-        purchaseStateManager.emitEvent(PurchaseEvent.PurchaseSuccess)
+        val productIdentifier = storeTransaction.productIds.firstOrNull() ?: "unknown"
+        purchaseStateManager.emitEvent(PurchaseEvent.PurchaseSuccess(productIdentifier))
     }
 
     override fun onPurchaseError(error: PurchasesError) {
@@ -30,7 +31,7 @@ class PaywallListenerImpl(
     }
 
     override fun onPurchaseStarted(rcPackage: Package) {
-        // No action needed
+        purchaseStateManager.emitEvent(PurchaseEvent.PurchaseStarted(rcPackage.identifier))
     }
 
     override fun onRestoreCompleted(customerInfo: CustomerInfo) {
@@ -46,6 +47,6 @@ class PaywallListenerImpl(
     }
 
     override fun onRestoreStarted() {
-        // No action needed
+        purchaseStateManager.emitEvent(PurchaseEvent.RestoreStarted)
     }
 }

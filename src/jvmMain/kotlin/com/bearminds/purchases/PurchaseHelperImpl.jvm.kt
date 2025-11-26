@@ -59,8 +59,8 @@ class JVMPurchaseHelper : PurchaseHelper {
     }
 
     @Composable
-    override fun Paywall(dismissRequest: () -> Unit) {
-        println("PurchaseHelper: JVM platform - Paywall not supported")
+    override fun Paywall(source: String, dismissRequest: () -> Unit) {
+        println("PurchaseHelper: JVM platform - Paywall not supported (source: $source)")
     }
 
     @Composable
