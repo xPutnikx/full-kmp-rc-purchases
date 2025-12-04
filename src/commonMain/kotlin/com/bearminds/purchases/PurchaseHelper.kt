@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 
 val purchasesApiKey = "purchasesApiKey"
 val entitlementsKey = "entitlementsKey"
+val offeringIdentifierKey = "offeringIdentifierKey"
 
 /**
  * Helper interface for managing in-app purchases and subscriptions
@@ -12,7 +13,14 @@ val entitlementsKey = "entitlementsKey"
  */
 interface PurchaseHelper {
     /**
-     * Initialize the purchase SDK with the appropriate API key
+     * Cached offerings, prefetched during initialization.
+     * Use this to avoid loading delay when showing paywall.
+     */
+    val cachedOfferings: PurchaseOfferings?
+
+    /**
+     * Initialize the purchase SDK with the appropriate API key.
+     * Also prefetches offerings for faster paywall display.
      * @param apiKey The API key for the current platform
      */
     suspend fun initialize(apiKey: String)
@@ -76,7 +84,7 @@ interface PurchaseHelper {
     fun setPreferredLocale(locale: String)
 
     @Composable
-    fun Paywall(source: String, dismissRequest: () -> Unit)
+    fun Paywall(offeringIdentifier: String?, source: String, dismissRequest: () -> Unit)
 
     @Composable
     fun CustomerCenter(modifier: Modifier, dismissRequest: () -> Unit)

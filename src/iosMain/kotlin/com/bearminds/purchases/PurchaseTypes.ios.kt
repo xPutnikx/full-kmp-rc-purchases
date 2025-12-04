@@ -40,13 +40,13 @@ internal class PurchaseEntitlementInfoWrapper(delegate: EntitlementInfo) :
     override val isActive: Boolean = delegate.isActive
 }
 
-internal class PurchaseOfferingsWrapper(delegate: Offerings) : PurchaseOfferings {
+internal class PurchaseOfferingsWrapper(val delegate: Offerings) : PurchaseOfferings {
     override val current: PurchaseOffering? = delegate.current?.let { PurchaseOfferingWrapper(it) }
     override val all: Map<String, PurchaseOffering> =
         delegate.all.mapValues { PurchaseOfferingWrapper(it.value) }
 }
 
-internal class PurchaseOfferingWrapper(delegate: Offering) : PurchaseOffering {
+internal class PurchaseOfferingWrapper(val delegate: Offering) : PurchaseOffering {
     override val identifier: String = delegate.identifier
     override val availablePackages: List<PurchasePackage> =
         delegate.availablePackages.map { PurchasePackageWrapper(it) }

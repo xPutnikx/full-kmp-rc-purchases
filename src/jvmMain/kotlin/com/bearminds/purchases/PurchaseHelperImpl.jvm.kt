@@ -11,8 +11,10 @@ class JVMPurchaseHelper : PurchaseHelper {
 
     private val proCustomerInfo = PurchaseCustomerInfoWrapper()
 
+    override val cachedOfferings: PurchaseOfferings? = null
+
     override suspend fun initialize(apiKey: String) {
-        println("PurchaseHelper: JVM platform - initialized with pro access granted")
+        // JVM platform - no initialization needed, pro access is auto-granted
     }
 
     override suspend fun getOfferings(
@@ -59,8 +61,8 @@ class JVMPurchaseHelper : PurchaseHelper {
     }
 
     @Composable
-    override fun Paywall(source: String, dismissRequest: () -> Unit) {
-        println("PurchaseHelper: JVM platform - Paywall not supported (source: $source)")
+    override fun Paywall(offeringIdentifier: String?, source: String, dismissRequest: () -> Unit) {
+        println("PurchaseHelper: JVM platform - Paywall not supported (source: $source, offering: $offeringIdentifier)")
     }
 
     @Composable

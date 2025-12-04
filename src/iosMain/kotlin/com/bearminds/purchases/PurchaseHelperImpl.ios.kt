@@ -2,7 +2,10 @@ package com.bearminds.purchases
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.revenuecat.purchases.kmp.LogLevel
 import com.revenuecat.purchases.kmp.Purchases
@@ -15,10 +18,13 @@ import org.koin.mp.KoinPlatform.getKoin
 class IOSPurchaseHelper : PurchaseHelper {
 
     private var isInitialized = false
+    private var _cachedOfferings: PurchaseOfferings? = null
+
+    override val cachedOfferings: PurchaseOfferings?
+        get() = _cachedOfferings
 
     override suspend fun initialize(apiKey: String) {
         if (isInitialized) {
-            println("PurchaseHelper: Already initialized")
             return
         }
 
@@ -30,11 +36,21 @@ class IOSPurchaseHelper : PurchaseHelper {
                 )
             )
             isInitialized = true
-            println("PurchaseHelper: Initialized successfully with API key")
+
+            // Prefetch offerings for faster paywall display
+            prefetchOfferings()
         } catch (e: Exception) {
-            println("PurchaseHelper: Initialization failed: ${e.message}")
             throw e
         }
+    }
+
+    private fun prefetchOfferings() {
+        Purchases.sharedInstance.getOfferings(
+            onError = { /* Silently fail - will retry when needed */ },
+            onSuccess = { offerings ->
+                _cachedOfferings = PurchaseOfferingsWrapper(offerings)
+            }
+        )
     }
 
     override suspend fun getOfferings(
@@ -170,12 +186,35 @@ class IOSPurchaseHelper : PurchaseHelper {
     }
 
     @Composable
-    override fun Paywall(source: String, dismissRequest: () -> Unit) {
+    override fun Paywall(offeringIdentifier: String?, source: String, dismissRequest: () -> Unit) {
         val purchaseStateManager: PurchaseStateManager = getKoin().get()
         val paywallListener: PaywallListener = getKoin().get()
 
-        val options = remember(paywallListener) {
+        // Try to get offering from cache first, then fetch if not available
+        var offering: com.revenuecat.purchases.kmp.models.Offering? by remember {
+            val cachedOffering = offeringIdentifier?.let {
+                (_cachedOfferings as? PurchaseOfferingsWrapper)?.delegate?.all?.get(it)
+            }
+            mutableStateOf(cachedOffering)
+        }
+
+        // Fetch from network if not in cache
+        LaunchedEffect(offeringIdentifier) {
+            if (offeringIdentifier != null && offering == null) {
+                Purchases.sharedInstance.getOfferings(
+                    onError = { /* Use default offering on error */ },
+                    onSuccess = { offerings ->
+                        offering = offerings.all[offeringIdentifier]
+                        // Update cache
+                        _cachedOfferings = PurchaseOfferingsWrapper(offerings)
+                    }
+                )
+            }
+        }
+
+        val options = remember(paywallListener, offering) {
             PaywallOptions(dismissRequest = dismissRequest) {
+                this.offering = offering
                 shouldDisplayDismissButton = true
                 listener = paywallListener
             }

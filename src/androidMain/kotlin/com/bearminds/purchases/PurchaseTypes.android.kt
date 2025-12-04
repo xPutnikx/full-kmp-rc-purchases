@@ -37,13 +37,13 @@ class AndroidPurchaseEntitlementInfo(delegate: EntitlementInfo) :
     override val isActive: Boolean = delegate.isActive
 }
 
-class AndroidPurchaseOfferings(delegate: Offerings) : PurchaseOfferings {
+class AndroidPurchaseOfferings(val delegate: Offerings) : PurchaseOfferings {
     override val current: PurchaseOffering? = delegate.current?.let { AndroidPurchaseOffering(it) }
     override val all: Map<String, PurchaseOffering> =
         delegate.all.mapValues { AndroidPurchaseOffering(it.value) }
 }
 
-class AndroidPurchaseOffering(delegate: Offering) : PurchaseOffering {
+class AndroidPurchaseOffering(val delegate: Offering) : PurchaseOffering {
     override val identifier: String = delegate.identifier
     override val availablePackages: List<PurchasePackage> =
         delegate.availablePackages.map { AndroidPurchasePackage(it) }
