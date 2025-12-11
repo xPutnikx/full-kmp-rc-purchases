@@ -11,8 +11,8 @@ actual val platformPurchaseModule: Module = module {
         JVMPurchaseHelper()
     }
 
-    single {
-        PurchaseStateManager(
+    single<PurchaseStateManager> {
+        PurchaseStateManagerImpl(
             purchaseHelper = get(),
             scope = CoroutineScope(SupervisorJob() + Dispatchers.Main),
             entitlementId = "ignore"

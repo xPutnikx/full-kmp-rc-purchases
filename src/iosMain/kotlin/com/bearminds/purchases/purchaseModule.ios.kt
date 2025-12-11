@@ -17,8 +17,8 @@ actual val platformPurchaseModule: Module = module {
         IOSPurchaseHelper()
     }
 
-    single {
-        PurchaseStateManager(
+    single<PurchaseStateManager> {
+        PurchaseStateManagerImpl(
             purchaseHelper = get(),
             scope = get(),
             entitlementId = get(named(entitlementsKey))

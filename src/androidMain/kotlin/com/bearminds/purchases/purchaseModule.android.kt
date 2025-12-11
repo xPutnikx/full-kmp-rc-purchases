@@ -19,8 +19,8 @@ actual val platformPurchaseModule: Module = module {
         AndroidPurchaseHelper()
     }
 
-    single {
-        PurchaseStateManager(
+    single<PurchaseStateManager> {
+        PurchaseStateManagerImpl(
             purchaseHelper = get(),
             scope = get(),
             entitlementId = get(named(entitlementsKey))
