@@ -76,4 +76,13 @@ class PurchaseStateManager(
             _purchaseEvents.emit(event)
         }
     }
+
+    /**
+     * Toggle pro status for development/testing purposes.
+     * This is only intended for use in debug builds on desktop.
+     */
+    fun toggleProStatusForDevelopment() {
+        _isPro.value = !_isPro.value
+        println("PurchaseStateManager: DEV - Toggled isPro to ${_isPro.value}")
+    }
 }
