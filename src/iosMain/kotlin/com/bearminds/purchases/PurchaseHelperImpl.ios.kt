@@ -250,6 +250,16 @@ class IOSPurchaseHelper : PurchaseHelper {
             modifier = modifier,
             onDismiss = {
                 purchaseStateManager.emitEvent(PurchaseEvent.CustomerCenter.Dismissed)
+                // Refresh subscription status after Customer Center closes
+                // User might have cancelled, restored, or made other changes
+                Purchases.sharedInstance.getCustomerInfo(
+                    onError = { /* Ignore - best effort refresh */ },
+                    onSuccess = { customerInfo ->
+                        purchaseStateManager.updateFromCustomerInfo(
+                            PurchaseCustomerInfoWrapper(customerInfo)
+                        )
+                    }
+                )
                 dismissRequest()
             }
         )
