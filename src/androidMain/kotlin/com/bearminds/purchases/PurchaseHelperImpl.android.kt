@@ -191,26 +191,12 @@ class AndroidPurchaseHelper : PurchaseHelper {
         val purchaseStateManager: PurchaseStateManager = getKoin().get()
         val paywallListener: PaywallListener = getKoin().get()
 
-        // Try to get offering from cache first, then fetch if not available
-        var offering: Offering? by remember {
+        // Get offering from cache
+        val offering: Offering? = remember(offeringIdentifier) {
             val cachedOffering = offeringIdentifier?.let {
                 (_cachedOfferings as? AndroidPurchaseOfferings)?.delegate?.all?.get(it)
             }
-            mutableStateOf(cachedOffering)
-        }
-
-        // Fetch from network if not in cache
-        LaunchedEffect(offeringIdentifier) {
-            if (offeringIdentifier != null && offering == null) {
-                Purchases.sharedInstance.getOfferings(
-                    onError = { /* Use default offering on error */ },
-                    onSuccess = { offerings ->
-                        offering = offerings.all[offeringIdentifier]
-                        // Update cache
-                        _cachedOfferings = AndroidPurchaseOfferings(offerings)
-                    }
-                )
-            }
+            cachedOffering
         }
 
         val options = remember(paywallListener, offering) {
@@ -221,16 +207,14 @@ class AndroidPurchaseHelper : PurchaseHelper {
             }
         }
 
-        // Track paywall displayed and observe events to handle dismiss on success/restore
+        // Track paywall displayed
         LaunchedEffect(Unit) {
             purchaseStateManager.emitEvent(PurchaseEvent.PaywallDisplayed(source))
             purchaseStateManager.purchaseEvents.collect { event ->
                 when (event) {
                     is PurchaseEvent.PurchaseSuccess,
                     PurchaseEvent.RestoreSuccess -> dismissRequest()
-
-                    else -> { /* Handle in UI layer */
-                    }
+                    else -> { /* Handle in UI layer */ }
                 }
             }
         }
