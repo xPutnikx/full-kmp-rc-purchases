@@ -7,6 +7,7 @@ import com.revenuecat.purchases.kmp.models.Offering
 import com.revenuecat.purchases.kmp.models.PurchasesError
 import com.revenuecat.purchases.kmp.models.Transaction
 import com.revenuecat.purchases.kmp.models.Package
+import java.text.NumberFormat
 import kotlin.time.ExperimentalTime
 
 /**
@@ -52,8 +53,55 @@ class AndroidPurchaseOffering(val delegate: Offering) : PurchaseOffering {
 }
 
 class AndroidPurchasePackage(val delegate: Package) : PurchasePackage {
+    private val product = delegate.storeProduct
+
     override val identifier: String = delegate.identifier
     override val packageType: String = delegate.packageType.name
+
+    // Price information from storeProduct
+    override val localizedPriceString: String = product.price.formatted
+    override val currencyCode: String = product.price.currencyCode
+    override val priceAmountMicros: Long = product.price.amountMicros
+
+    // Calculate price per month manually for annual packages
+    // RevenueCat KMP SDK doesn't expose pricePerMonth() on Android
+    // Returns just the formatted price without suffix - UI layer adds localized suffix
+    override val localizedPricePerMonth: String? = run {
+        val subscriptionPeriod = product.period
+        if (subscriptionPeriod != null && subscriptionPeriod.unit.name == "YEAR") {
+            val monthlyMicros = priceAmountMicros / 12
+            val monthlyAmount = monthlyMicros / 1_000_000.0
+            // Format with currency symbol only (no "/month" suffix)
+            NumberFormat.getCurrencyInstance().apply {
+                currency = java.util.Currency.getInstance(currencyCode)
+            }.format(monthlyAmount)
+        } else {
+            null
+        }
+    }
+
+    // Free trial detection - check subscription options for free trial
+    // The API differs between Android and iOS in RevenueCat KMP SDK
+    private val freePhase = run {
+        val defaultOption = product.subscriptionOptions?.defaultOffer
+        defaultOption?.pricingPhases?.firstOrNull { it.price.amountMicros == 0L }
+    }
+
+    override val hasFreeTrial: Boolean = freePhase != null
+
+    override val freeTrialPeriod: String? = freePhase?.billingPeriod?.let {
+        "${it.value} ${it.unit.name.lowercase()}"
+    }
+
+    override val freeTrialDays: Int? = freePhase?.billingPeriod?.let { period ->
+        when (period.unit.name.uppercase()) {
+            "DAY" -> period.value
+            "WEEK" -> period.value * 7
+            "MONTH" -> period.value * 30
+            "YEAR" -> period.value * 365
+            else -> null
+        }
+    }
 }
 
 class AndroidPurchaseError(delegate: PurchasesError) : PurchaseError {

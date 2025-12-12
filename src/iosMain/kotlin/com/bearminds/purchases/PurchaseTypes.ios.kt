@@ -9,6 +9,12 @@ import com.revenuecat.purchases.kmp.models.Offering
 import com.revenuecat.purchases.kmp.models.Package
 import com.revenuecat.purchases.kmp.models.PurchasesError
 import com.revenuecat.purchases.kmp.models.Transaction
+import com.revenuecat.purchases.kmp.models.freePhase
+import platform.Foundation.NSLocale
+import platform.Foundation.NSNumber
+import platform.Foundation.NSNumberFormatter
+import platform.Foundation.NSNumberFormatterCurrencyStyle
+import platform.Foundation.currentLocale
 import kotlin.time.ExperimentalTime
 
 /**
@@ -55,8 +61,48 @@ internal class PurchaseOfferingWrapper(val delegate: Offering) : PurchaseOfferin
 }
 
 internal class PurchasePackageWrapper(val delegate: Package) : PurchasePackage {
+    private val product = delegate.storeProduct
+
     override val identifier: String = delegate.identifier
     override val packageType: String = delegate.packageType.name
+
+    // Price information from storeProduct
+    override val localizedPriceString: String = product.price.formatted
+    override val currencyCode: String = product.price.currencyCode
+    override val priceAmountMicros: Long = product.price.amountMicros
+
+    // Calculate price per month manually for annual packages
+    // Returns just the formatted price without suffix - UI layer adds localized suffix
+    override val localizedPricePerMonth: String? = run {
+        val period = product.period
+        if (period != null && period.unit.name == "YEAR") {
+            val monthlyMicros = priceAmountMicros / 12
+            val monthlyAmount = monthlyMicros / 1_000_000.0
+            // Format with currency symbol using NSNumberFormatter
+            formatCurrency(monthlyAmount, currencyCode)
+        } else {
+            null
+        }
+    }
+
+    // Free trial detection from subscription options
+    private val freePhase = product.subscriptionOptions?.defaultOffer?.freePhase
+
+    override val hasFreeTrial: Boolean = freePhase != null
+
+    override val freeTrialPeriod: String? = freePhase?.billingPeriod?.let {
+        "${it.value} ${it.unit.name.lowercase()}"
+    }
+
+    override val freeTrialDays: Int? = freePhase?.billingPeriod?.let { period ->
+        when (period.unit.name.uppercase()) {
+            "DAY" -> period.value
+            "WEEK" -> period.value * 7
+            "MONTH" -> period.value * 30
+            "YEAR" -> period.value * 365
+            else -> null
+        }
+    }
 }
 
 internal class PurchaseErrorWrapper(delegate: PurchasesError) : PurchaseError {
@@ -69,4 +115,16 @@ internal class PurchaseStoreTransactionWrapper(delegate: Transaction) :
     override val transactionIdentifier: String = delegate.transactionIdentifier
     override val productIdentifier: String = delegate.productIdentifier
     override val purchaseDate: Long = delegate.purchaseDate.toEpochMilliseconds()
+}
+
+/**
+ * Format a currency amount using NSNumberFormatter
+ */
+private fun formatCurrency(amount: Double, currencyCode: String): String {
+    val formatter = NSNumberFormatter().apply {
+        numberStyle = NSNumberFormatterCurrencyStyle
+        this.currencyCode = currencyCode
+        locale = NSLocale.currentLocale
+    }
+    return formatter.stringFromNumber(NSNumber(amount)) ?: "$amount"
 }

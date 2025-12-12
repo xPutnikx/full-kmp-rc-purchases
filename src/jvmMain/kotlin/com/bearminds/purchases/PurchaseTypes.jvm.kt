@@ -68,6 +68,17 @@ class StubPurchaseOffering : PurchaseOffering {
 class StubPurchasePackage : PurchasePackage {
     override val identifier: String = ""
     override val packageType: String = ""
+
+    // Stub price information (desktop users always have Pro)
+    override val localizedPriceString: String = "$0.00"
+    override val localizedPricePerMonth: String? = null
+    override val currencyCode: String = "USD"
+    override val priceAmountMicros: Long = 0L
+
+    // No free trial on desktop stubs
+    override val hasFreeTrial: Boolean = false
+    override val freeTrialPeriod: String? = null
+    override val freeTrialDays: Int? = null
 }
 
 class StubPurchaseError : PurchaseError {
