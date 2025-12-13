@@ -1,6 +1,5 @@
 @file:OptIn(ExperimentalWasmDsl::class)
 
-import org.gradle.kotlin.dsl.dependencies
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
@@ -123,5 +122,11 @@ afterEvaluate {
         it.name.contains("watchos", ignoreCase = true)
     }.configureEach {
         exclude(group = "org.jetbrains.compose.ui", module = "ui")
+    }
+
+    // Exclude Amazon Appstore SDK globally - we only use Google Play
+    configurations.configureEach {
+        exclude(group = "com.revenuecat.purchases", module = "purchases-store-amazon")
+        exclude(group = "com.amazon.device", module = "amazon-appstore-sdk")
     }
 }
