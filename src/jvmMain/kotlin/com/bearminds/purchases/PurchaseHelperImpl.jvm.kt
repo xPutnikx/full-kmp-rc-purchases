@@ -44,10 +44,11 @@ class JVMPurchaseHelper : PurchaseHelper {
     }
 
     override suspend fun getCustomerInfo(
+        forceRefresh: Boolean,
         onSuccess: (PurchaseCustomerInfo) -> Unit,
         onError: (PurchaseError) -> Unit
     ) {
-        println("PurchaseHelper: JVM platform - returning pro customer info")
+        println("PurchaseHelper: JVM platform - returning pro customer info (forceRefresh=$forceRefresh)")
         onSuccess(proCustomerInfo)
     }
 

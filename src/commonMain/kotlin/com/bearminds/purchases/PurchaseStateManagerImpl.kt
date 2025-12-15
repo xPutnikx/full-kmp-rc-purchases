@@ -54,8 +54,9 @@ class PurchaseStateManagerImpl(
     private val _purchaseEvents = MutableSharedFlow<PurchaseEvent>()
     override val purchaseEvents: SharedFlow<PurchaseEvent> = _purchaseEvents.asSharedFlow()
 
-    override suspend fun refreshPurchaseState() {
+    override suspend fun refreshPurchaseState(forceRefresh: Boolean) {
         purchaseHelper.getCustomerInfo(
+            forceRefresh = forceRefresh,
             onSuccess = { customerInfo ->
                 updateFromCustomerInfo(customerInfo)
             },

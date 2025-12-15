@@ -59,10 +59,12 @@ interface PurchaseHelper {
 
     /**
      * Get current customer info
+     * @param forceRefresh If true, bypasses cache and fetches fresh data from server
      * @param onSuccess Callback with the current customer info
      * @param onError Callback with the error
      */
     suspend fun getCustomerInfo(
+        forceRefresh: Boolean = false,
         onSuccess: (PurchaseCustomerInfo) -> Unit,
         onError: (PurchaseError) -> Unit
     )

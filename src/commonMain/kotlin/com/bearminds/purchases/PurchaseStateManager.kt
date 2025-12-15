@@ -22,8 +22,9 @@ interface PurchaseStateManager {
 
     /**
      * Refresh the purchase state from the RevenueCat backend.
+     * @param forceRefresh If true, bypasses cache and fetches fresh data from server
      */
-    suspend fun refreshPurchaseState()
+    suspend fun refreshPurchaseState(forceRefresh: Boolean = false)
 
     /**
      * Update purchase state from customer info (called by platform callbacks).

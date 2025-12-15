@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import com.revenuecat.purchases.kmp.LogLevel
 import com.revenuecat.purchases.kmp.Purchases
 import com.revenuecat.purchases.kmp.PurchasesConfiguration
+import com.revenuecat.purchases.kmp.models.CacheFetchPolicy
 import com.revenuecat.purchases.kmp.models.Transaction
 import com.revenuecat.purchases.kmp.ui.revenuecatui.PaywallListener
 import com.revenuecat.purchases.kmp.ui.revenuecatui.PaywallOptions
@@ -131,6 +132,7 @@ class IOSPurchaseHelper : PurchaseHelper {
     }
 
     override suspend fun getCustomerInfo(
+        forceRefresh: Boolean,
         onSuccess: (PurchaseCustomerInfo) -> Unit,
         onError: (PurchaseError) -> Unit
     ) {
@@ -139,13 +141,20 @@ class IOSPurchaseHelper : PurchaseHelper {
             return
         }
 
+        val fetchPolicy = if (forceRefresh) {
+            CacheFetchPolicy.FETCH_CURRENT
+        } else {
+            CacheFetchPolicy.CACHED_OR_FETCHED
+        }
+
         Purchases.sharedInstance.getCustomerInfo(
+            fetchPolicy = fetchPolicy,
             onError = { error ->
                 println("PurchaseHelper: Failed to get customer info: ${error.message}")
                 onError(PurchaseErrorWrapper(error))
             },
             onSuccess = { customerInfo ->
-                println("PurchaseHelper: Got customer info successfully")
+                println("PurchaseHelper: Got customer info successfully (forceRefresh=$forceRefresh)")
                 onSuccess(PurchaseCustomerInfoWrapper(customerInfo))
             }
         )
