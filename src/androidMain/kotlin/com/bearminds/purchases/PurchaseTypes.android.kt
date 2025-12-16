@@ -7,6 +7,7 @@ import com.revenuecat.purchases.kmp.models.Offering
 import com.revenuecat.purchases.kmp.models.PurchasesError
 import com.revenuecat.purchases.kmp.models.Transaction
 import com.revenuecat.purchases.kmp.models.Package
+import com.revenuecat.purchases.kmp.models.freePhase
 import java.text.NumberFormat
 import kotlin.time.ExperimentalTime
 
@@ -80,12 +81,10 @@ class AndroidPurchasePackage(val delegate: Package) : PurchasePackage {
         }
     }
 
-    // Free trial detection - check subscription options for free trial
-    // The API differs between Android and iOS in RevenueCat KMP SDK
-    private val freePhase = run {
-        val defaultOption = product.subscriptionOptions?.defaultOffer
-        defaultOption?.pricingPhases?.firstOrNull { it.price.amountMicros == 0L }
-    }
+    // Free trial detection - use freeTrial from subscriptionOptions
+    // This returns the free trial SubscriptionOption if available
+    private val freeTrialOption = product.subscriptionOptions?.freeTrial
+    private val freePhase = freeTrialOption?.freePhase
 
     override val hasFreeTrial: Boolean = freePhase != null
 

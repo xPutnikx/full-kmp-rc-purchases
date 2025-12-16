@@ -85,8 +85,10 @@ internal class PurchasePackageWrapper(val delegate: Package) : PurchasePackage {
         }
     }
 
-    // Free trial detection from subscription options
-    private val freePhase = product.subscriptionOptions?.defaultOffer?.freePhase
+    // Free trial detection - use freeTrial from subscriptionOptions
+    // This returns the free trial SubscriptionOption if available
+    private val freeTrialOption = product.subscriptionOptions?.freeTrial
+    private val freePhase = freeTrialOption?.freePhase
 
     override val hasFreeTrial: Boolean = freePhase != null
 
