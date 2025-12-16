@@ -2,11 +2,11 @@
 package com.bearminds.purchases
 import com.revenuecat.purchases.kmp.models.CustomerInfo
 import com.revenuecat.purchases.kmp.models.EntitlementInfo
-import com.revenuecat.purchases.kmp.models.Offerings
 import com.revenuecat.purchases.kmp.models.Offering
+import com.revenuecat.purchases.kmp.models.Offerings
+import com.revenuecat.purchases.kmp.models.Package
 import com.revenuecat.purchases.kmp.models.PurchasesError
 import com.revenuecat.purchases.kmp.models.Transaction
-import com.revenuecat.purchases.kmp.models.Package
 import com.revenuecat.purchases.kmp.models.freePhase
 import java.text.NumberFormat
 import kotlin.time.ExperimentalTime
@@ -100,6 +100,42 @@ class AndroidPurchasePackage(val delegate: Package) : PurchasePackage {
             "YEAR" -> period.value * 365
             else -> null
         }
+    }
+
+    // Introductory offer detection - check defaultOption for discounted intro phase
+    // A discounted intro has 2+ pricing phases where the first is FINITE_RECURRING with non-zero price
+    private val defaultOption = product.subscriptionOptions?.defaultOffer
+    private val pricingPhases = defaultOption?.pricingPhases ?: emptyList()
+
+    // Intro phase: first phase that is FINITE_RECURRING with a non-zero price (not free trial)
+    private val introPhase = pricingPhases.firstOrNull { phase ->
+        phase.recurrenceMode.name == "FINITE_RECURRING" && phase.price.amountMicros > 0
+    }
+
+    // Regular phase: the INFINITE_RECURRING phase (the ongoing price after intro)
+    private val regularPhase = pricingPhases.firstOrNull { phase ->
+        phase.recurrenceMode.name == "INFINITE_RECURRING"
+    }
+
+    override val hasIntroductoryOffer: Boolean = introPhase != null && regularPhase != null
+
+    override val introductoryPrice: String? = introPhase?.price?.formatted
+
+    override val introductoryPriceAmountMicros: Long? = introPhase?.price?.amountMicros
+
+    override val regularPrice: String? = regularPhase?.price?.formatted
+
+    override val regularPriceAmountMicros: Long? = regularPhase?.price?.amountMicros
+
+    override val introductoryPeriod: String? = introPhase?.billingPeriod?.let {
+        "${it.value} ${it.unit.name.lowercase()}"
+    }
+
+    override val discountPercentage: Int? = run {
+        val introMicros = introPhase?.price?.amountMicros ?: return@run null
+        val regularMicros = regularPhase?.price?.amountMicros ?: return@run null
+        if (regularMicros <= 0) return@run null
+        ((regularMicros - introMicros) * 100 / regularMicros).toInt()
     }
 }
 

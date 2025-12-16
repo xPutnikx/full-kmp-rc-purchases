@@ -52,6 +52,15 @@ interface PurchasePackage {
     val hasFreeTrial: Boolean
     val freeTrialPeriod: String?          // e.g., "7 days", "1 week"
     val freeTrialDays: Int?               // Number of days for free trial (null if no trial)
+
+    // Introductory offer/discount information (paid intro phase, not free trial)
+    val hasIntroductoryOffer: Boolean     // True if there's a discounted intro period
+    val introductoryPrice: String?        // Formatted intro price, e.g., "174.50 kr"
+    val introductoryPriceAmountMicros: Long?  // Intro price in micros for calculations
+    val regularPrice: String?             // Formatted regular price after intro, e.g., "349.00 kr"
+    val regularPriceAmountMicros: Long?   // Regular price in micros
+    val introductoryPeriod: String?       // Intro period description, e.g., "1 year"
+    val discountPercentage: Int?          // Calculated discount percentage, e.g., 50
 }
 
 interface PurchaseError {

@@ -79,6 +79,15 @@ class StubPurchasePackage : PurchasePackage {
     override val hasFreeTrial: Boolean = false
     override val freeTrialPeriod: String? = null
     override val freeTrialDays: Int? = null
+
+    // No introductory offer on desktop stubs
+    override val hasIntroductoryOffer: Boolean = false
+    override val introductoryPrice: String? = null
+    override val introductoryPriceAmountMicros: Long? = null
+    override val regularPrice: String? = null
+    override val regularPriceAmountMicros: Long? = null
+    override val introductoryPeriod: String? = null
+    override val discountPercentage: Int? = null
 }
 
 class StubPurchaseError : PurchaseError {
