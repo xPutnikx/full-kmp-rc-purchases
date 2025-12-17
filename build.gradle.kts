@@ -91,6 +91,7 @@ kotlin {
             dependencies {
                 implementation(libs.revenuecat.android)
                 implementation(libs.revenuecat.android.ui)
+                implementation(libs.koin.android)
             }
         }
 

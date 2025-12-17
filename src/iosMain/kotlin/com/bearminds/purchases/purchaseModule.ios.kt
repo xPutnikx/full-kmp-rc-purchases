@@ -13,6 +13,10 @@ actual val platformPurchaseModule: Module = module {
         CoroutineScope(SupervisorJob() + Dispatchers.Main)
     }
 
+    single<NetworkConnectivity> {
+        IosNetworkConnectivity()
+    }
+
     single<PurchaseHelper> {
         IOSPurchaseHelper()
     }

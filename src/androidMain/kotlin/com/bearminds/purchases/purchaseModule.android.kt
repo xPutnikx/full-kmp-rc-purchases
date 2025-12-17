@@ -5,6 +5,7 @@ import com.revenuecat.purchases.kmp.ui.revenuecatui.PaywallListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -13,6 +14,10 @@ actual val platformPurchaseModule: Module = module {
 
     single {
         CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    }
+
+    single<NetworkConnectivity> {
+        AndroidNetworkConnectivity(androidContext())
     }
 
     single<PurchaseHelper> {

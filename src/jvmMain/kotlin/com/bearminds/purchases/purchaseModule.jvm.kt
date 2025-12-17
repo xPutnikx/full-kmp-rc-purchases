@@ -7,6 +7,11 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 actual val platformPurchaseModule: Module = module {
+
+    single<NetworkConnectivity> {
+        JvmNetworkConnectivity()
+    }
+
     single<PurchaseHelper> {
         JVMPurchaseHelper()
     }
