@@ -126,7 +126,6 @@ class AndroidPurchaseHelper : PurchaseHelper {
                 onError(AndroidPurchaseError(error))
             },
             onSuccess = { customerInfo ->
-                println("PurchaseHelper: Restored purchases successfully")
                 onSuccess(AndroidPurchaseCustomerInfo(customerInfo))
             }
         )

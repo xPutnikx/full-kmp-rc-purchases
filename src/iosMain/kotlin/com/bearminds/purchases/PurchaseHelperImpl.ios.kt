@@ -125,7 +125,6 @@ class IOSPurchaseHelper : PurchaseHelper {
                 onError(PurchaseErrorWrapper(error))
             },
             onSuccess = { customerInfo ->
-                println("PurchaseHelper: Restored purchases successfully")
                 onSuccess(PurchaseCustomerInfoWrapper(customerInfo))
             }
         )
