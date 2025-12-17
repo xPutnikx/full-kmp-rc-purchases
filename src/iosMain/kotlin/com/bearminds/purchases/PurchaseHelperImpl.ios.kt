@@ -194,6 +194,17 @@ class IOSPurchaseHelper : PurchaseHelper {
         println("PurchaseHelper: setPreferredLocale($locale) - Not yet supported in KMP SDK for iOS")
     }
 
+    override fun setFirebaseAppInstanceId(firebaseAppInstanceId: String) {
+        if (!isInitialized) {
+            println("PurchaseHelper: Not initialized, cannot set Firebase App Instance ID")
+            return
+        }
+        Purchases.sharedInstance.setAttributes(
+            mapOf($$"$firebaseAppInstanceId" to firebaseAppInstanceId)
+        )
+        println("PurchaseHelper: Set Firebase App Instance ID")
+    }
+
     @Composable
     override fun Paywall(offeringIdentifier: String?, source: String, dismissRequest: () -> Unit) {
         val purchaseStateManager: PurchaseStateManager = getKoin().get()

@@ -2,10 +2,7 @@ package com.bearminds.purchases
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.revenuecat.purchases.customercenter.CustomerCenterListener
 import com.revenuecat.purchases.kmp.LogLevel
@@ -13,13 +10,13 @@ import com.revenuecat.purchases.kmp.Purchases
 import com.revenuecat.purchases.kmp.PurchasesConfiguration
 import com.revenuecat.purchases.kmp.models.CacheFetchPolicy
 import com.revenuecat.purchases.kmp.models.Offering
-import com.revenuecat.purchases.Purchases as NativePurchases
 import com.revenuecat.purchases.kmp.models.Transaction
 import com.revenuecat.purchases.kmp.ui.revenuecatui.Paywall
 import com.revenuecat.purchases.kmp.ui.revenuecatui.PaywallListener
 import com.revenuecat.purchases.kmp.ui.revenuecatui.PaywallOptions
 import com.revenuecat.purchases.ui.revenuecatui.customercenter.CustomerCenterOptions
 import org.koin.mp.KoinPlatform.getKoin
+import com.revenuecat.purchases.Purchases as NativePurchases
 
 class AndroidPurchaseHelper : PurchaseHelper {
 
@@ -193,6 +190,17 @@ class AndroidPurchaseHelper : PurchaseHelper {
         }
         NativePurchases.sharedInstance.overridePreferredUILocale(locale)
         println("PurchaseHelper: Set preferred locale to $locale")
+    }
+
+    override fun setFirebaseAppInstanceId(firebaseAppInstanceId: String) {
+        if (!isInitialized) {
+            println("PurchaseHelper: Not initialized, cannot set Firebase App Instance ID")
+            return
+        }
+        Purchases.sharedInstance.setAttributes(
+            mapOf($$"$firebaseAppInstanceId" to firebaseAppInstanceId)
+        )
+        println("PurchaseHelper: Set Firebase App Instance ID")
     }
 
     @Composable

@@ -85,6 +85,13 @@ interface PurchaseHelper {
      */
     fun setPreferredLocale(locale: String)
 
+    /**
+     * Set the Firebase App Instance ID as a subscriber attribute.
+     * This is required for RevenueCat's Firebase integration to work properly.
+     * @param firebaseAppInstanceId The Firebase App Instance ID from Firebase.installations.getId()
+     */
+    fun setFirebaseAppInstanceId(firebaseAppInstanceId: String)
+
     @Composable
     fun Paywall(offeringIdentifier: String?, source: String, dismissRequest: () -> Unit)
 

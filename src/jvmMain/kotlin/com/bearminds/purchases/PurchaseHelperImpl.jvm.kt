@@ -61,6 +61,10 @@ class JVMPurchaseHelper : PurchaseHelper {
         println("PurchaseHelper: JVM platform - setPreferredLocale not supported")
     }
 
+    override fun setFirebaseAppInstanceId(firebaseAppInstanceId: String) {
+        println("PurchaseHelper: JVM platform - setFirebaseAppInstanceId not supported")
+    }
+
     @Composable
     override fun Paywall(offeringIdentifier: String?, source: String, dismissRequest: () -> Unit) {
         println("PurchaseHelper: JVM platform - Paywall not supported (source: $source, offering: $offeringIdentifier)")
