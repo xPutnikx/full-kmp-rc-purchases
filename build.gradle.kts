@@ -24,7 +24,10 @@ kotlin {
     }
 
     sourceSets {
-        named { it.lowercase().startsWith("ios") }.configureEach {
+        // Enable ExperimentalForeignApi for all Apple platforms
+        named {
+            it.lowercase().let { n -> n.startsWith("ios") || n.startsWith("macos") }
+        }.configureEach {
             languageSettings {
                 optIn("kotlinx.cinterop.ExperimentalForeignApi")
             }
@@ -95,22 +98,33 @@ kotlin {
             }
         }
 
-        iosMain {
-            dependencies {}
+        // iOS source set - explicit dependency setup for proper hierarchy
+        val iosMain by creating {
+            dependsOn(commonMain.get())
         }
+        val iosArm64Main by getting { dependsOn(iosMain) }
+        val iosX64Main by getting { dependsOn(iosMain) }
+        val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
+
+        // macOS shares StoreKit with iOS - RevenueCat should work
+        val macosMain by creating {
+            dependsOn(commonMain.get())
+        }
+        val macosArm64Main by getting { dependsOn(macosMain) }
+        val macosX64Main by getting { dependsOn(macosMain) }
     }
 }
 
 
-
 // Exclude RevenueCat from Unsupported platforms configurations
+// NOTE: RevenueCat KMP only supports iOS and Android - macOS is excluded
 afterEvaluate {
     configurations.matching {
         it.name.contains("jvm", ignoreCase = true) ||
-        it.name.contains("macos", ignoreCase = true) ||
-        it.name.contains("tvos", ignoreCase = true) ||
-        it.name.contains("watchos", ignoreCase = true) ||
-        it.name.contains("js", ignoreCase = true)
+                it.name.contains("macos", ignoreCase = true) ||
+                it.name.contains("tvos", ignoreCase = true) ||
+                it.name.contains("watchos", ignoreCase = true) ||
+                it.name.contains("js", ignoreCase = true)
     }.configureEach {
         exclude(group = "com.revenuecat.purchases", module = "purchases-kmp-core")
         exclude(group = "com.revenuecat.purchases", module = "purchases-kmp-either")
@@ -120,7 +134,7 @@ afterEvaluate {
 
     configurations.matching {
         it.name.contains("tvos", ignoreCase = true) ||
-        it.name.contains("watchos", ignoreCase = true)
+                it.name.contains("watchos", ignoreCase = true)
     }.configureEach {
         exclude(group = "org.jetbrains.compose.ui", module = "ui")
     }
