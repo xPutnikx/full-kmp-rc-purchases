@@ -63,6 +63,7 @@ class AndroidPurchaseHelper : PurchaseHelper {
     ) {
         if (!isInitialized) {
             println("PurchaseHelper: Not initialized, cannot fetch offerings")
+            onError(NotInitializedError())
             return
         }
 
@@ -85,6 +86,7 @@ class AndroidPurchaseHelper : PurchaseHelper {
     ) {
         if (!isInitialized) {
             println("PurchaseHelper: Not initialized, cannot make purchase")
+            onError(NotInitializedError(), false)
             return
         }
 
@@ -120,6 +122,7 @@ class AndroidPurchaseHelper : PurchaseHelper {
     ) {
         if (!isInitialized) {
             println("PurchaseHelper: Not initialized, cannot restore purchases")
+            onError(NotInitializedError())
             return
         }
 
@@ -141,6 +144,7 @@ class AndroidPurchaseHelper : PurchaseHelper {
     ) {
         if (!isInitialized) {
             println("PurchaseHelper: Not initialized, cannot get customer info")
+            onError(NotInitializedError())
             return
         }
 

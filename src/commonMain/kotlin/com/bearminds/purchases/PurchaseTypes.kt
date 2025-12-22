@@ -82,6 +82,7 @@ object PurchaseErrorCode {
     const val PAYMENT_PENDING = 20
     const val INVALID_RECEIPT = 21
     const val MISSING_RECEIPT = 22
+    const val NOT_INITIALIZED = 99  // SDK not initialized (e.g., no Google Play Services)
 
     /**
      * Check if the error code indicates a user cancellation (not a real error)
@@ -104,4 +105,14 @@ interface PurchaseStoreTransaction {
     val transactionIdentifier: String
     val productIdentifier: String
     val purchaseDate: Long
+}
+
+/**
+ * Error returned when purchase operations are attempted before SDK is initialized.
+ * This typically happens on devices without Google Play Services (Android) or
+ * when initialization failed.
+ */
+class NotInitializedError : PurchaseError {
+    override val message: String = "Purchase SDK not initialized. Store may not be available on this device."
+    override val code: Int = PurchaseErrorCode.NOT_INITIALIZED
 }
