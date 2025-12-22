@@ -209,6 +209,13 @@ class IOSPurchaseHelper : PurchaseHelper {
 
     @Composable
     override fun Paywall(offeringIdentifier: String?, source: String, dismissRequest: () -> Unit) {
+        // Check if SDK is initialized before showing Paywall
+        if (!isInitialized) {
+            println("PurchaseHelper: Not initialized, cannot show Paywall")
+            LaunchedEffect(Unit) { dismissRequest() }
+            return
+        }
+
         val purchaseStateManager: PurchaseStateManager = getKoin().get()
         val paywallListener: PaywallListener = getKoin().get()
 
