@@ -13,6 +13,12 @@ val offeringIdentifierKey = "offeringIdentifierKey"
  */
 interface PurchaseHelper {
     /**
+     * Whether the purchase SDK has been initialized.
+     * Must be true before calling any other methods.
+     */
+    val isInitialized: Boolean
+
+    /**
      * Cached offerings, prefetched during initialization.
      * Use this to avoid loading delay when showing paywall.
      */

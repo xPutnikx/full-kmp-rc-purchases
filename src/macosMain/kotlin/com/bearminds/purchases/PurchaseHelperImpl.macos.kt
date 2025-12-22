@@ -11,6 +11,8 @@ class MacosPurchaseHelper : PurchaseHelper {
 
     private val proCustomerInfo = MacosPurchaseCustomerInfo()
 
+    override val isInitialized: Boolean = true  // Always initialized on macOS (no SDK needed)
+
     override val cachedOfferings: PurchaseOfferings? = null
 
     override suspend fun initialize(apiKey: String) {

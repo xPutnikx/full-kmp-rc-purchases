@@ -20,8 +20,11 @@ import com.revenuecat.purchases.Purchases as NativePurchases
 
 class AndroidPurchaseHelper : PurchaseHelper {
 
-    private var isInitialized = false
+    private var _isInitialized = false
     private var _cachedOfferings: PurchaseOfferings? = null
+
+    override val isInitialized: Boolean
+        get() = _isInitialized
 
     override val cachedOfferings: PurchaseOfferings?
         get() = _cachedOfferings
@@ -36,7 +39,7 @@ class AndroidPurchaseHelper : PurchaseHelper {
             Purchases.configure(
                 configuration = PurchasesConfiguration(apiKey = apiKey)
             )
-            isInitialized = true
+            _isInitialized = true
 
             // Prefetch offerings for faster paywall display
             prefetchOfferings()
@@ -240,6 +243,14 @@ class AndroidPurchaseHelper : PurchaseHelper {
 
     @Composable
     override fun CustomerCenter(modifier: Modifier, dismissRequest: () -> Unit) {
+        // Check if SDK is initialized before showing CustomerCenter
+        // RevenueCat's CustomerCenter internally accesses Purchases.sharedInstance
+        if (!isInitialized) {
+            println("PurchaseHelper: Not initialized, cannot show CustomerCenter")
+            LaunchedEffect(Unit) { dismissRequest() }
+            return
+        }
+
         val purchaseStateManager: PurchaseStateManager = getKoin().get()
         val customerCenterListener: CustomerCenterListener = getKoin().get()
 

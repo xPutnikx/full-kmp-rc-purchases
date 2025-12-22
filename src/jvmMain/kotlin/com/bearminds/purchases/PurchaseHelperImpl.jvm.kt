@@ -11,6 +11,8 @@ class JVMPurchaseHelper : PurchaseHelper {
 
     private val proCustomerInfo = PurchaseCustomerInfoWrapper()
 
+    override val isInitialized: Boolean = true  // Always initialized on JVM (no SDK needed)
+
     override val cachedOfferings: PurchaseOfferings? = null
 
     override suspend fun initialize(apiKey: String) {
